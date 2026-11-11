@@ -27,9 +27,23 @@ attack:
   min_points_per_subpatch: 3
   scale_fraction: 0.8
   random_position: false
-  detection: {k_flat: 8, planarity_thresh: 0.5, angle_thresh: 15.0}
-  curve: {kind: spiral, turns: 3, petals: 5, freq_a: 3, freq_b: 2, density: 64.0, min_points_per_feature: 4}
-poison: {target_class: 0, rate: 0.2, clean_label: false}
+  detection:
+    k_flat: 8
+    planarity_thresh: 0.5
+    angle_thresh: 15.0
+  curve:
+    kind: spiral
+    turns: 3
+    petals: 5
+    freq_a: 3
+    freq_b: 2
+    density: 64.0
+    min_points_per_feature: 4
+  placement: equal_arc
+poison:
+  target_class: 0
+  rate: 0.2
+  clean_label: false
 train:
   epochs: 2
   batch_size: 5

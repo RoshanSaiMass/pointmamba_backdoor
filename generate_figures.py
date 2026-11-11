@@ -1,4 +1,4 @@
-"""All-class/all-curve paired figures, traceable manifest, and summary grid."""
+"""All-class/all-curve combined diagnostic figures, traceable manifest, and summary grid."""
 import argparse
 import copy
 import json
@@ -34,12 +34,12 @@ def run(c,output='figures',per_class=2,checkpoint=None):
                         after=int(model(r.points[None].to(c['device'])).argmax(-1))
                 metadata=dict(class_name=name,sample=i,curve_type=curve,M=cc['attack']['m'],
                     K_flat=cc['attack']['detection']['k_flat'],planarity_thresh=cc['attack']['detection']['planarity_thresh'],
-                    mode=r.metadata['mode'],poison_rate=c['poison']['rate'],target_class=c['poison']['target_class'],
+                    placement=cc['attack'].get('placement','nearest'),mode=r.metadata['mode'],poison_rate=c['poison']['rate'],target_class=c['poison']['target_class'],
                     requested=cc['attack']['curve'],effective=[v['curve']['effective'] for v in r.patch_records],
                     reduced=r.metadata['reduced'],synthetic=c['data'].get('synthetic',False))
                 path=root/name/curve/f'sample_{i}.png'
                 metrics=save_comparison(x[i].numpy(),p,r.patches,r.indices,metadata,path,
-                    prediction_before=before,prediction_after=after,target_class=c['poison']['target_class'])
+                    prediction_before=before,prediction_after=after,target_class=c['poison']['target_class'],patch_records=r.patch_records)
                 rows.append(dict(path=str(path),class_name=name,curve=curve,sample=i,**metrics,
                     metadata=json.dumps(metadata,sort_keys=True),full_config=json.dumps(cc,sort_keys=True),
                     insertion_metadata=json.dumps(r.metadata,sort_keys=True)))
@@ -53,7 +53,7 @@ def run(c,output='figures',per_class=2,checkpoint=None):
             axes[0].set_title(f'{name} / {curve}\nOriginal',fontsize=7)
     fig.suptitle('Original / poisoned overview'+(' — SYNTHETIC SMOKE DATA' if c['data'].get('synthetic') else ''),fontsize=12)
     fig.subplots_adjust(top=.97,wspace=0,hspace=.1); fig.savefig(root/'summary.png',dpi=140); plt.close(fig)
-    print(f'Saved {len(rows)} paired figures, manifest.csv and summary.png to {root}')
+    print(f'Saved {len(rows)} combined figures, manifest.csv and summary.png to {root}')
     return rows
 
 

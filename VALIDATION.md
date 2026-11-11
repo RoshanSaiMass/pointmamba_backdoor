@@ -35,3 +35,12 @@ AST equality, FPS/KNN, and CPU upstream classifier execution with explicit test
 doubles (small dimensions and a substituted mixer). No official CUDA validation
 was possible here. The required on-cluster check is scripts/check_official.py.
 See OFFICIAL_POINTMAMBA.md for the exact architecture/kernel/protocol distinction.
+
+Equal-arc placement update: **44 tests passed**. Tests verify uniform polyline
+arc positions, closed-path endpoint handling, degenerate paths, one-to-one
+minimum-cost source assignment, exact target placement, hull containment and
+unchanged unselected points in all three patch modes for all three curves.
+The synthetic all-class figure command completed (30 combined PNGs and summary).
+A generated four-panel PNG was visually inspected. The budget diagnostic CLI
+completed for two budgets. These are CPU geometry/pipeline checks, not evidence
+of improved real-data ASR; no new ModelNet training has been performed here.

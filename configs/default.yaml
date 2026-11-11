@@ -40,6 +40,7 @@ attack:
     delta: 1.5707963267948966
     density: 256.0
     min_points_per_feature: 4
+  placement: equal_arc
 poison:
   target_class: 0
   rate: 0.05
@@ -62,6 +63,6 @@ defense:
   srs_keep: 0.75
   jitter_std: 0.01
   jitter_clip: 0.05
-  spectral_fraction: 0.10
+  spectral_fraction: 0.1
   cluster_max_fraction: 0.35
   refit_epochs: 30

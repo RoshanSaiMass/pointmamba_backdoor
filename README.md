@@ -1,3 +1,34 @@
+# Equal-arc trigger placement update
+
+New YAML configurations select `attack.placement=equal_arc`. Existing points
+are assigned one-to-one to uniformly spaced arc-length targets on the final
+hull-clamped curve, minimizing total squared 3D movement with a rectangular
+linear assignment. This preserves N and changes only M selected indices. Arc
+length is measured on a dense polyline; straight-line distances between adjacent
+targets can differ at bends. Multi-patch mode distributes M across patches as
+before. Rank-zero curves cannot form a distinguishable pattern and are flagged.
+Legacy saved configs without a placement field retain `nearest` behavior.
+
+Inspect 64 and 128 moved points without training:
+
+```bash
+python view_patch.py --sample 150 --budgets 64 128
+```
+
+One PNG per budget contains original, unmarked poisoned, annotated poisoned and
+per-patch local top-down views, under `figures/diagnostics_equal_arc/`. Reference
+curves are visualization overlays only. Each invocation saves a traceable CSV
+manifest with config, frames, targets, selected indices and displacement records.
+Add `--placement nearest` to compare the old placement in separate files. Added
+points are NOT used: the clouds retain their original point count.
+
+`generate_figures.py` now uses the same combined layout. Run new training under
+a NEW output directory/config; do not resume old experiments with changed
+placement. Old-model predictions on new triggers are cross-trigger evaluation,
+not evidence that a model trained on equal-arc triggers. New cache keys separate
+placements and hash changed insertion code. This geometry improvement alone
+does not establish higher ASR; retraining and evaluation are required.
+
 # Official backbone update
 
 Use [OFFICIAL_POINTMAMBA.md](OFFICIAL_POINTMAMBA.md) and `configs/official.yaml` for the pinned official classifier architecture with an explicit PyTorch grouping backend. The default config below is retained for legacy custom-model checkpoints.

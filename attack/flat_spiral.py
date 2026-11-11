@@ -3,6 +3,7 @@ from dataclasses import dataclass, field, asdict
 import numpy as np
 import torch
 from scipy.spatial import ConvexHull, QhullError
+from scipy.optimize import linear_sum_assignment
 from .curves import CurveConfig, generate_curve
 from .flat_detection import DetectionConfig, detect_flat_patches
 
@@ -17,6 +18,7 @@ class AttackConfig:
     min_points_per_subpatch: int = 3
     scale_fraction: float = .8
     random_position: bool = False
+    placement: str = 'nearest'  # legacy compatibility; new YAML configs select equal_arc
 
 @dataclass
 class AttackResult:
@@ -69,6 +71,31 @@ def clamp_hull(curve, uv):
         coord=uv@direction
         return np.clip(curve@direction,coord.min(),coord.max())[:,None]*direction
 
+def sample_equal_arc(polyline, count):
+    """Sample uniform arc positions on the final hull-clamped dense polyline.
+
+    Euclidean chord lengths need not be equal at bends. Closed paths omit the
+    duplicate endpoint. Rank-zero paths are explicitly marked degenerate.
+    """
+    points=np.asarray(polyline,dtype=np.float64)
+    if count<1 or points.ndim!=2 or points.shape[1]!=2 or not len(points):
+        raise ValueError('nonempty [S,2] polyline and positive count required')
+    lengths=np.linalg.norm(np.diff(points,axis=0),axis=1)
+    cumulative=np.r_[0.,np.cumsum(lengths)]
+    total=float(cumulative[-1])
+    if total<=1e-14:
+        return np.repeat(points[:1],count,axis=0),dict(total_arc_length=total,
+            arc_positions=[0.]*count,closed=False,degenerate_curve=True)
+    # Remove duplicate consecutive vertices so interpolation abscissae increase.
+    keep=np.r_[True,lengths>0]
+    distance,vertices=cumulative[keep],points[keep]
+    closed=bool(np.linalg.norm(points[0]-points[-1])<=max(1e-12,total*1e-8))
+    positions=np.linspace(0.,total,count,endpoint=not closed)
+    targets=np.column_stack([np.interp(positions,distance,vertices[:,j]) for j in range(2)])
+    return targets,dict(total_arc_length=total,arc_positions=positions.tolist(),
+                       closed=closed,degenerate_curve=False)
+
+
 @torch.no_grad()
 def insert_trigger(points, config=None, seed=0):
     c=config or AttackConfig()
@@ -76,6 +103,8 @@ def insert_trigger(points, config=None, seed=0):
         raise ValueError('expected [N,3] and 1 <= m <= N')
     if not 0 < c.scale_fraction <= 1 or c.min_points_per_subpatch<1 or c.num_subpatches<1:
         raise ValueError('invalid scale or subpatch configuration')
+    if c.placement not in ('nearest','equal_arc'):
+        raise ValueError('placement must be nearest or equal_arc')
     detection=detect_flat_patches(points,c.detection)
     patches=detection.patches[0]
     score=(detection.planarity[0]/detection.density[0]).cpu().numpy()
@@ -106,16 +135,31 @@ def insert_trigger(points, config=None, seed=0):
         radius=float(np.linalg.norm(uv,axis=1).max())*c.scale_fraction
         curve=generate_curve(radius,budget,c.curve)
         bounded=clamp_hull(curve.points,uv)
-        order=rng.permutation(len(patch)) if c.random_position else np.argsort(-score[patch],kind='stable')
-        selected=patch[order[:budget]]
-        local=(original[selected]-center)@axes
-        nearest=np.argmin(((local[:,None,:]-bounded[None,:,:])**2).sum(-1),axis=1)
-        snapped=bounded[nearest]
+        spacing={}
+        if c.placement=='equal_arc':
+            snapped,spacing=sample_equal_arc(bounded,budget)
+            target_xyz=center+snapped@axes.T
+            # One distinct existing point per target, minimizing TOTAL squared
+            # 3D movement. Independent nearest-neighbor choices could reuse points.
+            candidates=patch if not c.random_position else rng.permutation(patch)[:budget]
+            cost=((target_xyz[:,None,:]-original[candidates][None,:,:])**2).sum(-1)
+            rows,columns=linear_sum_assignment(cost)
+            if not np.array_equal(rows,np.arange(budget)):
+                raise RuntimeError('Incomplete curve-target assignment')
+            selected=candidates[columns]
+        else:
+            order=rng.permutation(len(patch)) if c.random_position else np.argsort(-score[patch],kind='stable')
+            selected=patch[order[:budget]]
+            local=(original[selected]-center)@axes
+            nearest=np.argmin(((local[:,None,:]-bounded[None,:,:])**2).sum(-1),axis=1)
+            snapped=bounded[nearest]
         poisoned[selected]=center+snapped@axes.T
         indices.extend(selected.tolist())
         records.append(dict(indices=selected.tolist(),patch=patch.tolist(),center=center.tolist(),
             axes=axes.tolist(),hull_uv=uv.tolist(),curve_uv=bounded.tolist(),snapped_uv=snapped.tolist(),
-            curve=curve.metadata))
+            curve=curve.metadata,placement=c.placement,spacing=spacing,
+            original_selected_uv=((original[selected]-center)@axes).tolist(),
+            displacement=np.linalg.norm(poisoned[selected]-original[selected],axis=1).tolist()))
     meta=dict(mode=mode,num_subpatches=len(chosen),requested_m=c.m,actual_m=len(indices),
               capacity_fallback=capacity_fallback,reduced=any(r['curve']['reduced'] for r in records),
               config=asdict(c))
