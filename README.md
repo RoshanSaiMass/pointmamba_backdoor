@@ -67,9 +67,27 @@ or numerical-equivalence claim. Backbones are selected through `build_model`;
 
 ## Data
 
-Acquire the original ModelNet meshes from the
-[official ModelNet page](https://modelnet.cs.princeton.edu/). Extract the dataset
-locally; the program does not download data or require credentials.
+Download ModelNet10 automatically (standard library only; can run before GPU setup):
+
+```bash
+python3 scripts/download_modelnet10.py
+```
+
+This downloads the official HTTPS archive to `datasets/ModelNet10.zip`, safely
+extracts meshes into `datasets/ModelNet10`, and checks all ten classes plus the
+expected 3,991 training / 908 test objects. Repeated runs verify the existing
+dataset. TLS, ZIP CRC, and optional `--sha256` verification remain enabled; a
+recorded SHA256 identifies the downloaded bytes but is not an independently
+trusted checksum. Failed downloads/extractions do not replace existing data.
+Use `--url https://...` only for an explicitly trusted mirror if the original
+server is unavailable. No automatic fallback to an unverified source is used.
+The source could not be contacted from this cloud instance because its outbound
+policy denied the domain; local archive extraction and download handling were
+tested with fixtures. The live download must be verified on your machine.
+
+For ModelNet40 or manual downloads, acquire meshes from the
+[official ModelNet page](https://modelnet.cs.princeton.edu/), then extract them
+locally. Training itself does not make network requests or require credentials.
 
 ```text
 /path/to/ModelNet10/

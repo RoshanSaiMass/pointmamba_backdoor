@@ -2,7 +2,7 @@
 
 Executed in this CPU-only workspace with Python 3.12.14 and torch 2.15.0+cpu.
 
-- `python -m pytest -q`: **25 passed**. Covers single/multi/degenerate hull
+- `python -m pytest -q`: **30 passed**. Covers single/multi/degenerate hull
   containment and point counts, rotation invariance, curve radius/reduction,
   both backbone gradients, poisoning/cache semantics, OFF loading/sampling,
   defenses, checkpoint evaluation/reporting, and exact resumed CPU weights.
@@ -24,3 +24,8 @@ Not executed: real ModelNet experiments, CUDA Mamba installation/kernels,
 A100 memory/performance checks, or the full long-running ablation sweep.
 Run `scripts/setup_a100.sh` and its CUDA checker on the target machine before
 starting research training. See README for exact commands and method choices.
+
+Downloader update: five additional fixture tests cover streamed downloads,
+checksum failures, safe extraction, traversal rejection, count checks, and reuse.
+Live Princeton download was blocked by the cloud outbound policy (HTTP 403
+CONNECT); it was not verified here.
