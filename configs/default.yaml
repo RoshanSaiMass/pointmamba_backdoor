@@ -1,0 +1,67 @@
+seed: 42
+device: cuda
+geometry_device: cpu
+output: runs/spiral
+data:
+  root: datasets/ModelNet10
+  num_classes: 10
+  num_points: 1024
+  cache_dir: cache
+  synthetic: false
+  synthetic_train: 40
+  synthetic_test: 20
+model:
+  backbone: pointmamba
+  mamba_impl: mamba_ssm
+  dim: 128
+  depth: 4
+  groups: 64
+  group_size: 32
+  knn: 20
+  dropout: 0.3
+attack:
+  m: 32
+  min_patch_size: 40
+  num_subpatches: 8
+  min_subpatch_size: 6
+  min_points_per_subpatch: 3
+  scale_fraction: 0.8
+  random_position: false
+  detection:
+    k_flat: 20
+    planarity_thresh: 0.6
+    angle_thresh: 15.0
+  curve:
+    kind: spiral
+    turns: 3
+    petals: 5
+    freq_a: 3
+    freq_b: 2
+    delta: 1.5707963267948966
+    density: 256.0
+    min_points_per_feature: 4
+poison:
+  target_class: 0
+  rate: 0.05
+  clean_label: false
+train:
+  epochs: 200
+  batch_size: 32
+  lr: 0.001
+  weight_decay: 0.0001
+  num_workers: 0
+  augment: true
+  insertion_order: before_augmentation
+  asr_threshold: 0.95
+  convergence_patience: 3
+  grad_clip: 1.0
+  amp: false
+defense:
+  sor_k: 20
+  sor_std: 1.0
+  srs_keep: 0.75
+  jitter_std: 0.01
+  jitter_clip: 0.05
+  spectral_fraction: 0.10
+  cluster_max_fraction: 0.35
+  refit_epochs: 30

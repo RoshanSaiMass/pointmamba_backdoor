@@ -1,0 +1,53 @@
+seed: 7
+device: cpu
+geometry_device: cpu
+output: runs/smoke
+data:
+  root: unused
+  num_classes: 10
+  num_points: 64
+  cache_dir: cache/smoke
+  synthetic: true
+  synthetic_train: 20
+  synthetic_test: 10
+model:
+  backbone: pointmamba
+  mamba_impl: reference
+  dim: 24
+  depth: 1
+  groups: 8
+  group_size: 8
+  knn: 8
+  dropout: 0.0
+attack:
+  m: 12
+  min_patch_size: 16
+  num_subpatches: 3
+  min_subpatch_size: 4
+  min_points_per_subpatch: 3
+  scale_fraction: 0.8
+  random_position: false
+  detection: {k_flat: 8, planarity_thresh: 0.5, angle_thresh: 15.0}
+  curve: {kind: spiral, turns: 3, petals: 5, freq_a: 3, freq_b: 2, density: 64.0, min_points_per_feature: 4}
+poison: {target_class: 0, rate: 0.2, clean_label: false}
+train:
+  epochs: 2
+  batch_size: 5
+  lr: 0.001
+  weight_decay: 0.0001
+  num_workers: 0
+  augment: true
+  insertion_order: before_augmentation
+  asr_threshold: 0.95
+  convergence_patience: 2
+  grad_clip: 1.0
+  amp: false
+defense:
+  sor_k: 8
+  sor_std: 1.0
+  srs_keep: 0.75
+  jitter_std: 0.01
+  jitter_clip: 0.05
+  spectral_fraction: 0.1
+  cluster_max_fraction: 0.35
+  refit_epochs: 1

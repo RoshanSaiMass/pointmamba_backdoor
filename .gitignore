@@ -1,7 +1,9 @@
-.venv/
 __pycache__/
 .pytest_cache/
+.venv/
 *.pyc
 runs/
+cache/
 figures/
-*.npz
+datasets/
+*.egg-info/
