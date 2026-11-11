@@ -1,0 +1,4 @@
+# Install into the existing working pointmamba-a100 environment.
+timm==0.9.16
+addict==2.4.0
+transformers==4.44.2

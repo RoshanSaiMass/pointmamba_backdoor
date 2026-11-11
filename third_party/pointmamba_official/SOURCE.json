@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/LMD0311/PointMamba",
+  "commit": "80858e096e33ff7470640fe1f2132e5c1e667074",
+  "files": {
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "block_scan.py": "2ea5a304bfeacbe9c773b44d1f936645fe37ed14f190ba4294e121e03e221991",
+    "finetune_modelnet.yaml": "5d7883593d2064accfaeeeb975b2fd29f98c88a99667ff3cc30e8cc514e84d6c",
+    "hilbert.py": "b6c4e6c763d0d1e1583448d0cfe9c1c2ff5600e4535799beed9af80b48179f9e",
+    "point_mamba_scan.py": "f2a6af92942427c71178596da8d01324c80a1865abca0faebc7ca0c03286ad04",
+    "serialization.py": "2b455f9573dfcf3556535d4b0d0f2e0afbf40f53025779a206ae912f8af6f256"
+  }
+}

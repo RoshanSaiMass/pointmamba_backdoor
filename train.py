@@ -53,7 +53,10 @@ def fit(c,train_x,train_y,test_x,test_y,attack_x,attack_y,output,poison_mask=Non
     scaler=torch.amp.GradScaler('cuda',enabled=amp)
     generator=torch.Generator().manual_seed(c['seed'])
     ds=TensorDataset(train_x,train_y,torch.arange(len(train_y)))
-    loader=DataLoader(ds,batch_size=t['batch_size'],shuffle=True,num_workers=t['num_workers'],generator=generator)
+    drop_last=t.get('drop_last',False)
+    if drop_last and len(ds)<t['batch_size']:
+        raise ValueError('drop_last requires at least one full training batch')
+    loader=DataLoader(ds,batch_size=t['batch_size'],shuffle=True,num_workers=t['num_workers'],generator=generator,drop_last=drop_last)
     history=[]; class_history=[]; streak=0; convergence=None; start=time.time()
     class_streak={}; class_convergence={}; first_epoch=1
     if resume:
@@ -110,7 +113,7 @@ def fit(c,train_x,train_y,test_x,test_y,attack_x,attack_y,output,poison_mask=Non
                  ca=ca['accuracy'],asr=asr['accuracy'],lr=optimizer.param_groups[0]['lr'],seconds=time.time()-start)
         history.append(row); write_csv(output/'history.csv',history)
         print(f"epoch={epoch} loss={row['loss']:.4f} CA={row['ca']} ASR={row['asr']}",flush=True)
-        checkpoint=dict(schema=1,config=c,model=model.state_dict(),optimizer=optimizer.state_dict(),
+        checkpoint=dict(schema=1,config=c,model_provenance=getattr(model,'provenance',None),model=model.state_dict(),optimizer=optimizer.state_dict(),
                         scheduler=scheduler.state_dict(),epoch=epoch,convergence_epoch=convergence,
                         history=history,class_convergence=class_convergence,class_streak=class_streak,
                         class_history=class_history,streak=streak,scaler=scaler.state_dict(),

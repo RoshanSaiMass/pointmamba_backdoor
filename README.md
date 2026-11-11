@@ -1,3 +1,7 @@
+# Official backbone update
+
+Use [OFFICIAL_POINTMAMBA.md](OFFICIAL_POINTMAMBA.md) and `configs/official.yaml` for the pinned official classifier architecture with an explicit PyTorch grouping backend. The default config below is retained for legacy custom-model checkpoints.
+
 # Flat-curve point-cloud backdoor research
 
 A reproducible PyTorch pipeline for studying geometric backdoors on ModelNet10

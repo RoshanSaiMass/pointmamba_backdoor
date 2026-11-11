@@ -29,3 +29,9 @@ Downloader update: five additional fixture tests cover streamed downloads,
 checksum failures, safe extraction, traversal rejection, count checks, and reuse.
 Live Princeton download was blocked by the cloud outbound policy (HTTP 403
 CONNECT); it was not verified here.
+
+Official-backbone update: **33 tests passed**. Added upstream source integrity /
+AST equality, FPS/KNN, and CPU upstream classifier execution with explicit test
+doubles (small dimensions and a substituted mixer). No official CUDA validation
+was possible here. The required on-cluster check is scripts/check_official.py.
+See OFFICIAL_POINTMAMBA.md for the exact architecture/kernel/protocol distinction.
